@@ -3,7 +3,7 @@
 .byte $1a
 .byte $02 ; 2 * 16KB PRG ROM
 .byte $01 ; 1 * 8KB CHR ROM
-.byte %00000000 ; mapper and mirroring
+.byte %00000001 ; mapper and mirroring
 .byte $00
 .byte $00
 .byte $00
@@ -82,6 +82,28 @@ LoadSprites:
     CPX #$20
     BNE LoadSprites    
 
+; Clear the nametables- this isn't necessary in most emulators unless
+; you turn on random memory power-on mode, but on real hardware
+; not doing this means that the background / nametable will have
+; random garbage on screen. This clears out nametables starting at
+; $2000 and continuing on to $2400 (which is fine because we have
+; vertical mirroring on. If we used horizontal, we'd have to do
+; this for $2000 and $2800)
+    LDX #$00
+    LDY #$00
+    LDA $2002
+    LDA #$20
+    STA $2006
+    LDA #$00
+    STA $2006
+ClearNametable:
+    STA $2007
+    INX
+    BNE ClearNametable
+    INY
+    CPY #$08
+    BNE ClearNametable
+    
 ; Enable interrupts
     CLI
 
